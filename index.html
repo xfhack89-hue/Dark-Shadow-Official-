@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>DARK SHADOW</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0a0a;
+            background-image: radial-gradient(circle at 25% 40%, rgba(40, 40, 40, 0.3) 2%, transparent 2.5%);
+            background-size: 55px 55px;
+            font-family: 'Segoe UI', 'Courier New', monospace;
+            color: #cfcfcf;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .wrapper {
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        .header {
+            border-bottom: 3px solid #7a2e2e;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            flex-wrap: wrap;
+        }
+
+        .band-logo h1 {
+            font-size: 3.8rem;
+            letter-spacing: 6px;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: #e0e0e0;
+            text-shadow: 4px 4px 0px #4a1e1e;
+        }
+
+        .avatar {
+            background: #111;
+            border: 2px solid #6b2e2e;
+            border-radius: 100px;
+            overflow: hidden;
+            width: 90px;
+            height: 90px;
+        }
+
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .track-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 28px;
+            margin: 40px 0;
+        }
+
+        .track-card {
+            background: #121212;
+            border: 1px solid #2c2c2c;
+            border-top: 4px solid #942a2a;
+            padding: 20px 18px;
+            transition: 0.2s linear;
+        }
+
+        .track-card:hover {
+            border-color: #b33b3b;
+            background: #181818;
+            transform: translateY(-4px);
+        }
+
+        .track-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            word-break: break-word;
+            margin-bottom: 15px;
+            color: #e6c9c9;
+            letter-spacing: 1px;
+        }
+
+        .track-title span {
+            color: #a55;
+            margin-right: 8px;
+        }
+
+        audio {
+            width: 100%;
+            margin: 12px 0;
+            background: #1a1a1a;
+            border-radius: 30px;
+        }
+
+        audio::-webkit-media-controls-panel {
+            background-color: #1a1a1a;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .download-btn {
+            display: inline-block;
+            background: #2a0f0f;
+            color: #ddd;
+            text-decoration: none;
+            padding: 8px 16px;
+            font-weight: bold;
+            font-size: 0.75rem;
+            border: 1px solid #833;
+            transition: 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            text-align: center;
+            flex: 1;
+        }
+
+        .download-btn:hover {
+            background: #4f1e1e;
+            color: white;
+            border-color: #bc6f6f;
+        }
+
+        .footer {
+            margin-top: 60px;
+            text-align: center;
+            border-top: 1px solid #2a2a2a;
+            padding-top: 25px;
+            font-size: 0.7rem;
+            color: #4a4a4a;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 60px;
+            background: #0e0e0e;
+            border-left: 10px solid #5c2626;
+            font-size: 1.2rem;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px;
+            font-size: 1.2rem;
+            color: #a55;
+        }
+
+        @media (max-width: 650px) {
+            .band-logo h1 { font-size: 2rem; }
+            .track-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="wrapper">
+    <div class="header">
+        <div class="avatar">
+            <img src="avatar.jpg" alt="DARK SHADOW" onerror="this.src='https://placehold.co/400x400/1a1a1a/7a2e2e?text=DS'">
+        </div>
+        <div class="band-logo">
+            <h1>DARK SHADOW</h1>
+        </div>
+    </div>
+
+    <div id="track-list" class="track-grid">
+        <div class="loading">⛓️ ЗАГРУЗКА... ⛓️</div>
+    </div>
+    <div class="footer">
+        <span>DARK SHADOW</span>
+    </div>
+</div>
+
+<script>
+    // GitHub API — получаем список MP3 файлов
+    const GITHUB_API = 'https://api.github.com/repos/xfhack89-hue/Dark-Shadow-Official-/contents';
+    
+    async function loadTracks() {
+        const container = document.getElementById('track-list');
+        
+        try {
+            const response = await fetch(GITHUB_API);
+            const files = await response.json();
+            
+            const mp3Files = files.filter(f => f.name.toLowerCase().endsWith('.mp3'));
+            
+            if (mp3Files.length === 0) {
+                container.innerHTML = '<div class="empty">⛓️ НЕТ ТРЕКОВ ⛓️</div>';
+                return;
+            }
+            
+            mp3Files.sort((a, b) => new Date(b.sha) - new Date(a.sha));
+            
+            container.innerHTML = mp3Files.map(file => {
+                let trackName = file.name.replace('.mp3', '').replace(/[_\-]/g, ' ');
+                return `
+                    <div class="track-card">
+                        <div class="track-title">
+                            <span>🎸</span> ${escapeHtml(trackName)}
+                        </div>
+                        <audio controls preload="none">
+                            <source src="${file.download_url}" type="audio/mpeg">
+                            Твой браузер не поддерживает аудио
+                        </audio>
+                        <div class="btn-group">
+                            <a href="${file.download_url}" class="download-btn" download>⬇ СКАЧАТЬ MP3</a>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+        } catch (error) {
+            console.error('Ошибка:', error);
+            container.innerHTML = '<div class="empty">⛓️ ОШИБКА ЗАГРУЗКИ ⛓️</div>';
+        }
+    }
+    
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+    
+    loadTracks();
+</script>
+</body>
+</html>
